@@ -9,7 +9,6 @@ function random (num) {
 function generateLog (firstPerson, secondPerson, damage, hpLeft, hpTotal) {
   const { name: name1 } = firstPerson
   const { name: name2 } = secondPerson
-
   const logs = [
     `${name1} замислився, але раптом ${name2} підскочив і дав ляпаса.`,
     `${name1} моргнув, а ${name2} вже встиг вдарити по спині.`,
@@ -22,7 +21,6 @@ function generateLog (firstPerson, secondPerson, damage, hpLeft, hpTotal) {
     `${name1} почав радіти, що все добре, але ${name2} нагадав, що ні.`,
     `${name1} відкрив рот, щоб щось сказати, але ${name2} прикрив його кулаком.`
   ]
-
   const text = logs[random(logs.length) - 1]
   return `${text} -${damage} [${hpLeft}/${hpTotal}]`
 }
@@ -36,7 +34,6 @@ function renderLog (text) {
 function createPlayer ({ name, id }) {
   const elHP = document.getElementById(`health-${id}`)
   const elProgressbar = document.getElementById(`progressbar-${id}`)
-
   return {
     name,
     defaultHP: 100,
@@ -44,11 +41,9 @@ function createPlayer ({ name, id }) {
     lost: false,
     elHP,
     elProgressbar,
-
     renderHPLife () {
       this.elHP.innerText = `${this.damageHP} / ${this.defaultHP}`
     },
-
     renderProgressbarHP () {
       this.elProgressbar.style.width = `${this.damageHP}%`
       if (this.damageHP > 60) {
@@ -59,12 +54,10 @@ function createPlayer ({ name, id }) {
         this.elProgressbar.style.background = '#F44336'
       }
     },
-
     renderHP () {
       this.renderHPLife()
       this.renderProgressbarHP()
     },
-
     changeHP (count, enemy) {
       if (this.damageHP <= count) {
         this.damageHP = 0
@@ -98,16 +91,44 @@ function attack (attacker, defender, maxDamage) {
   defender.changeHP(damage, attacker)
 }
 
-$btnKick.addEventListener('click', function () {
-  console.log('Thunder Jolt!')
-  attack(character, enemy1, 20)
-  attack(character, enemy2, 20)
+const createClickCounter = (button, maxClicks) => {
+  let clicks = 0
+  const originalText = button.innerText
+  return () => {
+    if (clicks < maxClicks) {
+      clicks++
+      const remaining = maxClicks - clicks
+      console.log(`Кнопка "${originalText}": натискань ${clicks}/${maxClicks}`)
+      button.innerText = `${originalText} (${remaining} залишилось)`
+      if (clicks === maxClicks) {
+        button.disabled = true
+        button.style.opacity = '0.6'
+        button.innerText = `${originalText} (0 залишилось)`
+        console.log(`Кнопка "${originalText}" більше не активна`)
+      }
+      return true
+    }
+    return false
+  }
+}
+
+const kickCounter = createClickCounter($btnKick, 7)
+const quickCounter = createClickCounter($btnQuick, 7)
+
+$btnKick.addEventListener('click', () => {
+  if (kickCounter()) {
+    console.log('Thunder Jolt!')
+    attack(character, enemy1, 20)
+    attack(character, enemy2, 20)
+  }
 })
 
-$btnQuick.addEventListener('click', function () {
-  console.log('Quick Attack!')
-  attack(character, enemy1, 10)
-  attack(character, enemy2, 10)
+$btnQuick.addEventListener('click', () => {
+  if (quickCounter()) {
+    console.log('Quick Attack!')
+    attack(character, enemy1, 10)
+    attack(character, enemy2, 10)
+  }
 })
 
 function init () {
